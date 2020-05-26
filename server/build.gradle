@@ -36,6 +36,9 @@ dependencies {
     // для logback.xml (только для тестов)
     testImplementation(group: 'org.codehaus.janino', name: 'janino', version: '3.1.2')
 
+    //-- модули
+    implementation project(":util")
+
     //-- Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

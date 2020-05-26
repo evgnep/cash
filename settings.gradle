@@ -1,3 +1,4 @@
 rootProject.name = 'cash'
 
 include ('server')
+include ('util')

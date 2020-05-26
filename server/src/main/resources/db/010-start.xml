@@ -1,8 +1,56 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
-   <!-- <changeSet author="evgNep" id="010-start">
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <changeSet author="evgNep" id="010-start">
         <sql>
-
+            CREATE SEQUENCE public.hibernate_sequence;
         </sql>
-    </changeSet> -->
+
+        <sql>
+            -- currency
+            CREATE TABLE currency (
+            id bigint not null,
+            name text not null,
+            code text not null,
+            CONSTRAINT currency_pk PRIMARY KEY (id)
+            );
+
+            CREATE UNIQUE INDEX currency_name ON public.currency (name);
+            CREATE UNIQUE INDEX currency_code ON public.currency (code);
+        </sql>
+
+        <sql>
+            -- account
+            CREATE TABLE account (
+            id bigint not null,
+            name text not null,
+            closed bool not null,
+            is_money bool not null,
+            note text,
+            total numeric(19,2) not null,
+            currency_id bigint not null,
+            CONSTRAINT account_pk PRIMARY KEY (id),
+
+            CONSTRAINT account_currency_id_fk FOREIGN KEY (currency_id)
+            REFERENCES public.currency (id)
+            ON UPDATE RESTRICT
+            ON DELETE RESTRICT
+            );
+
+            CREATE UNIQUE INDEX account_name ON public.account (name);
+        </sql>
+
+        <sql>
+            -- user
+            CREATE TABLE appl_user (
+            id bigint not null,
+            name text not null,
+            is_child bool not null,
+            CONSTRAINT user_pk PRIMARY KEY (id)
+            );
+
+            CREATE UNIQUE INDEX user_name ON public.appl_user (name);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
