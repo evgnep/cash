@@ -2,6 +2,13 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <!--changeSet author="evgNep" id="010a-uuid">
+        <sql>
+            CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+        </sql>
+    </changeSet-->
+
+
     <changeSet author="evgNep" id="010-start">
         <sql>
             CREATE SEQUENCE public.hibernate_sequence;
@@ -51,6 +58,94 @@
             );
 
             CREATE UNIQUE INDEX user_name ON public.appl_user (name);
+        </sql>
+
+        <sql>
+            -- account_group
+            CREATE TABLE account_group (
+            id bigint not null,
+            name text not null,
+            CONSTRAINT account_group_pk PRIMARY KEY (id)
+            );
+
+            CREATE UNIQUE INDEX account_group_name ON public.account_group (name);
+
+            CREATE TABLE account_to_group (
+            account_id bigint not null,
+            group_id bigint not null,
+            CONSTRAINT account_to_group_pk PRIMARY KEY (account_id, group_id),
+
+            CONSTRAINT account_to_group_account_fk FOREIGN KEY (account_id)
+            REFERENCES public.account (id)
+            ON UPDATE RESTRICT
+            ON DELETE CASCADE,
+
+            CONSTRAINT account_to_group_group_fk FOREIGN KEY (group_id)
+            REFERENCES public.account_group (id)
+            ON UPDATE RESTRICT
+            ON DELETE CASCADE
+            );
+        </sql>
+
+        <sql>
+            -- record
+            CREATE TABLE record (
+            id uuid not null,
+            time timestamp with time zone NOT NULL,
+            create_time timestamp with time zone NOT NULL DEFAULT 'now()',
+            update_time timestamp with time zone,
+            note text,
+            validated bool NOT NULL,
+            creator_id bigint NOT NULL,
+
+            CONSTRAINT record_pk PRIMARY KEY (id),
+
+            CONSTRAINT record_creator_fk FOREIGN KEY (creator_id)
+            REFERENCES public.appl_user (id)
+            ON UPDATE RESTRICT
+            ON DELETE RESTRICT
+            );
+        </sql>
+
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION record_update_trigger_fnc()
+            RETURNS trigger AS
+            $$
+            BEGIN
+            NEW.update_time = 'now()';
+            RETURN NEW;
+            END;
+            $$  LANGUAGE 'plpgsql';
+        </sql>
+
+        <sql>
+            CREATE TRIGGER record_update_trigger BEFORE UPDATE
+            ON record FOR EACH ROW
+            EXECUTE PROCEDURE record_update_trigger_fnc();
+        </sql>
+
+        <sql>
+            -- record_part
+            CREATE TABLE record_part (
+            id bigint not null,
+            record_id uuid not null,
+            account_id bigint not null,
+            money numeric(19,2) not null,
+            no integer not null,
+            note text,
+
+            CONSTRAINT record_part_pk PRIMARY KEY (id),
+
+            CONSTRAINT record_part_record_fk FOREIGN KEY (record_id)
+            REFERENCES public.record (id)
+            ON UPDATE RESTRICT
+            ON DELETE CASCADE,
+
+            CONSTRAINT record_part_account_fk FOREIGN KEY (account_id)
+            REFERENCES public.account (id)
+            ON UPDATE RESTRICT
+            ON DELETE RESTRICT
+            );
         </sql>
     </changeSet>
 </databaseChangeLog>

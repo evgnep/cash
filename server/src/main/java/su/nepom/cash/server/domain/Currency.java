@@ -9,7 +9,7 @@ import javax.persistence.Id;
 
 /**
  * Валюта.
- * <p>Создается только в серверной БД
+ * <p>Создается и меняется только в серверной БД
  */
 @Data
 @Accessors(chain = true)
