@@ -3,8 +3,10 @@ package su.nepom.cash.server.domain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import su.nepom.cash.server.repository.RecordRepository;
 
 import java.math.BigDecimal;
@@ -19,12 +21,12 @@ class RecordTest extends DomainTest {
     private User user2 = new User().setName("B");
     private Record record1 = new Record().setNote("Note").setTime(Instant.ofEpochSecond(42));
     private Account account = new Account().setName("Cash").setNote("Some note");
-    private RecordPart recordPart1 = new RecordPart().setMoney(BigDecimal.valueOf(42)).setNo(1);
-    private RecordPart recordPart2 = new RecordPart().setMoney(BigDecimal.valueOf(420)).setNo(2).setNote("X");
-
+    private final RecordPart recordPart1 = new RecordPart().setMoney(BigDecimal.valueOf(42)).setNo(1);
+    private final RecordPart recordPart2 = new RecordPart().setMoney(BigDecimal.valueOf(420)).setNo(2).setNote("X");
+    private final static Logger log = LoggerFactory.getLogger("TEST");
 
     @Autowired
-    RecordRepository repository; // реп не проверяем - он не содержит кастомных методов
+    RecordRepository repository;
 
     @BeforeEach
     void beforeEach() {
@@ -81,14 +83,13 @@ class RecordTest extends DomainTest {
 
     @Test
     void workWithParts() {
-        var logger = LoggerFactory.getLogger("TEST");
-        logger.info("\n\nДобавим часть 1");
+        log.info("\n\nДобавим часть 1");
         record1 = manager.persist(record1);
         record1.addPart(recordPart1);
         var id = manager.persistAndFlush(record1).getId();
         manager.clear();
 
-        logger.info("\n\nДобавим часть 2");
+        log.info("\n\nДобавим часть 2");
         var readed = manager.find(Record.class, id);
         assertThat(readed.getParts()).containsExactly(recordPart1);
 
@@ -96,7 +97,7 @@ class RecordTest extends DomainTest {
         manager.flush();
         manager.clear();
 
-        logger.info("\n\nУдалим часть 2");
+        log.info("\n\nУдалим часть 2");
         readed = manager.find(Record.class, id);
         assertThat(readed.getParts()).containsExactly(recordPart1, recordPart2);
 
@@ -104,11 +105,68 @@ class RecordTest extends DomainTest {
         manager.flush();
         manager.clear();
 
-        logger.info("\n\nУдалим проводку");
+        log.info("\n\nУдалим проводку");
         readed = manager.find(Record.class, id);
         assertThat(readed.getParts()).containsExactly(recordPart1);
 
         manager.remove(readed);
         manager.flush();
+    }
+
+    @Test
+    void findByFilter() {
+        log.info("\n\nTEST");
+        var account2 = new Account().setName("Card").setCurrency(currency);
+        account2 = manager.persist(account2);
+
+        record1.addPart(recordPart1).addPart(recordPart2);
+        record1 = manager.persist(record1);
+
+        var record2 = new Record().setNote("Note2").setTime(Instant.ofEpochSecond(500)).setCreator(user2)
+                .addPart(new RecordPart().setMoney(BigDecimal.TEN).setNo(1).setAccount(account2))
+                .addPart(new RecordPart().setMoney(BigDecimal.ZERO).setNo(2).setAccount(account));
+
+        record2 = manager.persist(record2);
+
+        manager.flush();
+
+        log.info("\n\nquery 1 - счет 1 - обе, без диапазона");
+        var res = repository.findByFilter(account.getId(), null, null, Pageable.unpaged());
+        assertThat(res).containsExactlyInAnyOrder(record1, record2);
+
+        log.info("\n\nquery 2 - счет 2 - вторая");
+        res = repository.findByFilter(account2.getId(), null, null, Pageable.unpaged());
+        assertThat(res).containsExactly(record2);
+
+        log.info("\n\nquery 3 - диапазон дат");
+        res = repository.findByFilter(account.getId(), Instant.ofEpochSecond(0), Instant.ofEpochSecond(100), Pageable.unpaged());
+        assertThat(res).containsExactlyInAnyOrder(record1);
+
+        log.info("\n\nquery 4 - начало диапазона");
+        res = repository.findByFilter(account.getId(), Instant.ofEpochSecond(400), null, Pageable.unpaged());
+        assertThat(res).containsExactlyInAnyOrder(record2);
+
+        log.info("\n\nquery 5 - конец диапазона");
+        res = repository.findByFilter(account.getId(), null, Instant.ofEpochSecond(400), Pageable.unpaged());
+        assertThat(res).containsExactlyInAnyOrder(record1);
+    }
+
+    @Test
+    void saveThroughRepository() {
+        record1.addPart(recordPart1).addPart(recordPart2);
+        manager.persist(record1);
+        manager.flush();
+        manager.clear();
+
+        log.warn("\n\n1");
+        record1.getParts().remove(1);
+        repository.save(record1);
+
+        manager.flush();
+        manager.clear();
+
+        log.warn("\n\n2");
+        record1 = repository.findById(record1.getId()).orElseThrow();
+        assertThat(record1.getParts()).containsExactly(recordPart1);
     }
 }
