@@ -28,20 +28,35 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
 
+    //-- swagger
+    implementation 'org.springdoc:springdoc-openapi-ui:1.2.32'
+
+    //-- mapstruct
+    def mapstruct = '1.3.1.Final'
+    implementation "org.mapstruct:mapstruct:${mapstruct}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstruct}"
+
     //-- БД
     implementation 'org.liquibase:liquibase-core'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'com.opentable.components:otj-pg-embedded:0.13.3'
+
+    //-- Hibernate metamodel
+    annotationProcessor('org.hibernate:hibernate-jpamodelgen')
 
     // для logback.xml (только для тестов)
     testImplementation(group: 'org.codehaus.janino', name: 'janino', version: '3.1.2')
 
     //-- модули
     implementation project(":util")
+    implementation project(":dto")
 
     //-- Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    def lombok = 'org.projectlombok:lombok'
+    compileOnly lombok
+    annotationProcessor lombok
+    testCompileOnly lombok
+    testAnnotationProcessor lombok
 }
 
 test {
