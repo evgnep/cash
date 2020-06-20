@@ -71,11 +71,20 @@ class UserControllerTest {
         var user = new User().setName("qwe").setChild(true);
         var dto = mapper.map(user);
 
+        when(repository.existsById(anyLong())).thenReturn(true);
         when(repository.save(any())).thenAnswer(AdditionalAnswers.returnsFirstArg());
 
         mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(responseBody().containsObjectAsJson(dto.setId(42)));
 
         verify(repository).save(eq(user.setId(42)));
+        verify(repository).existsById(eq(42L));
+    }
+
+    @Test
+    void shouldThrowIfUserDontExists() throws Exception {
+        var dto = mapper.map(user1);
+        when(repository.existsById(anyLong())).thenReturn(false);
+        mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(status().isNotFound());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package su.nepom.cash.server.remote.crud;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,19 +10,16 @@ import su.nepom.cash.dto.RecordDto;
 import su.nepom.cash.server.remote.mapper.RecordMapper;
 import su.nepom.cash.server.repository.RecordRepository;
 
+import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/record")
+@RequiredArgsConstructor
 public class RecordController {
     private final RecordRepository repository;
     private final RecordMapper mapper;
-
-    public RecordController(RecordRepository repository, RecordMapper mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
-    }
 
     @PostMapping("/filter")
     Page<RecordDto> filter(@RequestBody FilterDto filter, Pageable pageable) {
@@ -32,7 +30,7 @@ public class RecordController {
 
     @GetMapping("/{id}")
     RecordDto getOne(@PathVariable UUID id) {
-        return repository.findById(id).map(mapper::map).orElseThrow();
+        return repository.findById(id).map(mapper::map).orElseThrow(EntityNotFoundException::new);
     }
 
     @PostMapping
@@ -41,9 +39,12 @@ public class RecordController {
     }
 
     @PutMapping("/{id}")
+    @Transactional
     RecordDto update(@PathVariable UUID id, @RequestBody RecordDto record) {
+        if (!repository.existsById(id))
+            throw  new EntityNotFoundException();
         record.setId(id);
-        return insert(record);
+        return mapper.map(repository.save(mapper.map(record)));
     }
 
     @DeleteMapping("/{id}")

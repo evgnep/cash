@@ -1,23 +1,21 @@
 package su.nepom.cash.server.remote.crud;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import su.nepom.cash.dto.CurrencyDto;
 import su.nepom.cash.server.remote.mapper.CurrencyMapper;
 import su.nepom.cash.server.repository.CurrencyRepository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/currency")
+@RequiredArgsConstructor
 public class CurrencyController {
     private final CurrencyRepository repository;
     private final CurrencyMapper mapper;
-
-    public CurrencyController(CurrencyRepository repository, CurrencyMapper mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
-    }
 
     @GetMapping
     List<CurrencyDto> getAll() {
@@ -26,7 +24,7 @@ public class CurrencyController {
 
     @GetMapping("/{id}")
     CurrencyDto getOne(@PathVariable long id) {
-        return repository.findById(id).map(mapper::map).orElseThrow();
+        return repository.findById(id).map(mapper::map).orElseThrow(EntityNotFoundException::new);
     }
 
     @PostMapping
@@ -35,9 +33,12 @@ public class CurrencyController {
     }
 
     @PutMapping("/{id}")
+    @Transactional
     CurrencyDto update(@PathVariable long id, @RequestBody CurrencyDto currency) {
+        if (!repository.existsById(id))
+            throw  new EntityNotFoundException();
         currency.setId(id);
-        return insert(currency);
+        return mapper.map(repository.save(mapper.map(currency)));
     }
 
     @DeleteMapping("/{id}")

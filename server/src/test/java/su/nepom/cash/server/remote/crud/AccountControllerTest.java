@@ -16,8 +16,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -74,6 +73,7 @@ class AccountControllerTest {
         var dto = mapper.map(account1).setId(1);
 
         when(repository.save(any())).thenAnswer(AdditionalAnswers.returnsFirstArg());
+        when(repository.existsById(anyLong())).thenReturn(true);
 
         mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(responseBody().containsObjectAsJson(dto.setId(42)));
 

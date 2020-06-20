@@ -15,8 +15,7 @@ import su.nepom.cash.server.repository.AccountGroupRepository;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,7 +27,7 @@ import static su.nepom.cash.server.remote.crud.ResponseBodyMatchers.responseBody
         AccountGroupMapper.class})
 @DisplayName("Rest-CRUD групп кошельков")
 class AccountGroupControllerTest {
-    private final static String URL = "/api/accountGroup", URL_ID = URL + "/{id}";
+    private final static String URL = "/api/account-group", URL_ID = URL + "/{id}";
     private final Account account1 = new Account(1);
     private final Account account2 = new Account(2);
     private final AccountGroup group1 = new AccountGroup().setId(101).setName("Group1").addAccount(account1).addAccount(account2);
@@ -73,11 +72,20 @@ class AccountGroupControllerTest {
         group1.setId(0);
         var dto = mapper.map(group1).setId(1);
 
+        when(repository.existsById(anyLong())).thenReturn(true);
         when(repository.save(any())).thenAnswer(AdditionalAnswers.returnsFirstArg());
 
         mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(responseBody().containsObjectAsJson(dto.setId(42)));
 
         verify(repository).save(eq(group1.setId(42)));
+        verify(repository).existsById(eq(42L));
+    }
+
+    @Test
+    void shouldThrowIfAccountDontExists() throws Exception {
+        var dto = mapper.map(group1);
+        when(repository.existsById(anyLong())).thenReturn(false);
+        mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(status().isNotFound());
     }
 
     @Test

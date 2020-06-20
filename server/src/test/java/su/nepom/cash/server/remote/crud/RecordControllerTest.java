@@ -96,6 +96,7 @@ class RecordControllerTest {
         var dto = mapper.map(record);
 
         when(repository.save(any())).thenAnswer(AdditionalAnswers.returnsFirstArg());
+        when(repository.existsById(any())).thenReturn(true);
 
         mvc.perform(put(URL_ID, id).with(json(dto))).andExpect(responseBody().containsObjectAsJson(dto.setId(id)));
 
