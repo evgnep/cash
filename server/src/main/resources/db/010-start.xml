@@ -2,13 +2,6 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
-    <!--changeSet author="evgNep" id="010a-uuid">
-        <sql>
-            CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-        </sql>
-    </changeSet-->
-
-
     <changeSet author="evgNep" id="010-start">
         <sql>
             CREATE SEQUENCE public.hibernate_sequence;

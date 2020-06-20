@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+group 'su.nepom'
+version '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //-- Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+}

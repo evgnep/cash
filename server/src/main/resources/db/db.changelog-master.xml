@@ -3,4 +3,7 @@
                    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
     <include file="010-start.xml" relativeToChangelogFile="true"/>
+    <changeSet id="020-between" author="evgnep">
+        <sqlFile path="020-between.sql" relativeToChangelogFile="true" splitStatements="false" />
+    </changeSet>
 </databaseChangeLog>
