@@ -14,6 +14,8 @@ public class UserDto {
     private long id;
     private String name;
     private boolean child; // ребенок - права ограничены
+    private String password;
+    private boolean enabled;
 
     public UserDto(long id) {
         this.id = id;

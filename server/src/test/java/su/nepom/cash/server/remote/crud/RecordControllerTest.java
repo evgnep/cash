@@ -8,6 +8,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import su.nepom.cash.server.domain.Account;
 import su.nepom.cash.server.domain.Record;
@@ -32,6 +34,7 @@ import static su.nepom.cash.server.remote.crud.ResponseBodyMatchers.responseBody
 
 @WebMvcTest({RecordController.class,
         RecordMapper.class})
+@WithMockUser(roles = "PARENT")
 @DisplayName("Rest-CRUD записей")
 class RecordControllerTest {
     private final static String URL = "/api/record", URL_ID = URL + "/{id}";
@@ -46,6 +49,8 @@ class RecordControllerTest {
 
     @MockBean
     private RecordRepository repository;
+    @MockBean
+    private UserDetailsService userDetailsService;
     @Autowired
     private RecordMapper mapper;
     @Autowired

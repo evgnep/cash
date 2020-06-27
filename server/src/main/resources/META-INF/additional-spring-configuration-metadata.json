@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "cash.adminPassword",
+      "type": "java.lang.String",
+      "description": "Пароль администратора. Если не задан - генерируется случайный."
+    }
+  ]
+}

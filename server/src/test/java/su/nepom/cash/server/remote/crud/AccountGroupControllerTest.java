@@ -6,6 +6,8 @@ import org.mockito.AdditionalAnswers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import su.nepom.cash.server.domain.Account;
 import su.nepom.cash.server.domain.AccountGroup;
@@ -25,6 +27,7 @@ import static su.nepom.cash.server.remote.crud.ResponseBodyMatchers.responseBody
 
 @WebMvcTest({AccountGroupController.class,
         AccountGroupMapper.class})
+@WithMockUser(roles = "PARENT")
 @DisplayName("Rest-CRUD групп кошельков")
 class AccountGroupControllerTest {
     private final static String URL = "/api/account-group", URL_ID = URL + "/{id}";
@@ -34,10 +37,13 @@ class AccountGroupControllerTest {
 
     @MockBean
     private AccountGroupRepository repository;
+    @MockBean
+    private UserDetailsService userDetailsService;
     @Autowired
     private AccountGroupMapper mapper;
     @Autowired
     private MockMvc mvc;
+
 
     @Test
     void getAll() throws Exception {

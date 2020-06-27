@@ -6,6 +6,8 @@ import org.mockito.AdditionalAnswers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import su.nepom.cash.server.domain.Account;
 import su.nepom.cash.server.domain.Currency;
@@ -26,6 +28,7 @@ import static su.nepom.cash.server.remote.crud.ResponseBodyMatchers.responseBody
 
 @WebMvcTest({AccountController.class,
         AccountMapper.class})
+@WithMockUser(roles = "PARENT")
 @DisplayName("Rest-CRUD кошельков")
 class AccountControllerTest {
     private final static String URL = "/api/account", URL_ID = URL + "/{id}";
@@ -34,6 +37,8 @@ class AccountControllerTest {
 
     @MockBean
     private AccountRepository repository;
+    @MockBean
+    private UserDetailsService userDetailsService;
     @Autowired
     private AccountMapper mapper;
     @Autowired

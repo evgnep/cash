@@ -6,6 +6,8 @@ import org.mockito.AdditionalAnswers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import su.nepom.cash.server.domain.Currency;
 import su.nepom.cash.server.remote.mapper.CurrencyMapper;
@@ -18,7 +20,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static su.nepom.cash.server.remote.crud.JsonWriter.json;
@@ -26,6 +27,7 @@ import static su.nepom.cash.server.remote.crud.ResponseBodyMatchers.responseBody
 
 @WebMvcTest({CurrencyController.class,
         CurrencyMapper.class})
+@WithMockUser(roles = "PARENT")
 @DisplayName("Rest-CRUD валюты")
 class CurrencyControllerTest {
     private final static String URL = "/api/currency", URL_ID = URL + "/{id}";
@@ -33,6 +35,8 @@ class CurrencyControllerTest {
 
     @MockBean
     private CurrencyRepository repository;
+    @MockBean
+    private UserDetailsService userDetailsService;
     @Autowired
     private CurrencyMapper mapper;
     @Autowired

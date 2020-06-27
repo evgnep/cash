@@ -1,6 +1,5 @@
 package su.nepom.cash.server.remote.crud;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import su.nepom.cash.dto.AccountGroupDto;
