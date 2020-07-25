@@ -16,9 +16,11 @@ public interface RecordRepository extends JpaRepository<Record, UUID> {
      * @param account Account.id, должен быть обязательно
      * @param from    Дата начала. Если null - с самой первой
      * @param to      Дата конца. Если null - до самой последней
+     * @param isChild Исключать проводки, полностью невидимые для детей
      */
     @Query("select distinct p.record from RecordPart p where p.account.id = :account and " +
             "function('betweenIfNotNull', p.record.time, " +
-            "function('toTimestampTz', :from), function('toTimestampTz', :to)) = true")
-    Page<Record> findByFilter(long account, Instant from, Instant to, Pageable pageable);
+            "function('toTimestampTz', :from), function('toTimestampTz', :to)) = true and " +
+            "(:isChild = false or p.account.availableToChild = true)")
+    Page<Record> findByFilter(long account, Instant from, Instant to, boolean isChild, Pageable pageable);
 }

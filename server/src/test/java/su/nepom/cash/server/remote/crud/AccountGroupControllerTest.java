@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import su.nepom.cash.server.domain.Account;
@@ -100,4 +101,54 @@ class AccountGroupControllerTest {
         verify(repository).deleteById(eq(42L));
     }
 
+    @Test
+    @WithAnonymousUser
+    void shouldForbidAnonymous() throws Exception {
+        mvc.perform(get(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(get(URL)).andExpect(status().isUnauthorized());
+        mvc.perform(put(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(post(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(delete(URL_ID, 42)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldPermitGetOneForChildIfHasAvailableAccount() throws Exception {
+        account1.setAvailableToChild(true);
+        account2.setAvailableToChild(false);
+        when(repository.findById(101L)).thenReturn(Optional.of(group1));
+
+        var dto = mapper.map(group1);
+        dto.getAccounts().remove(account2.getId());
+
+        mvc.perform(get(URL_ID, 101))
+                .andExpect(responseBody().containsObjectAsJson(dto));
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldForbidGetOneForChildIfHasNotAvailableAccount() throws Exception {
+        account1.setAvailableToChild(false);
+        account2.setAvailableToChild(false);
+        when(repository.findById(101L)).thenReturn(Optional.of(group1));
+
+        mvc.perform(get(URL_ID, 101))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldPermitGetAllForChildIfHasAvailableAccount() throws Exception {
+        account1.setAvailableToChild(true);
+        account2.setAvailableToChild(false);
+        var group2 = new AccountGroup().setId(102).setName("Group2").addAccount(account2);
+
+        when(repository.findAll()).thenReturn(List.of(group1, group2));
+
+        var dto = mapper.map(group1);
+        dto.getAccounts().remove(account2.getId());
+
+        mvc.perform(get(URL))
+                .andExpect(responseBody().containsObjectAsJson(List.of(dto)));
+    }
 }

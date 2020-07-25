@@ -20,7 +20,8 @@ class RecordTest extends DomainTest {
     private User user1 = new User().setName("A");
     private User user2 = new User().setName("B");
     private Record record1 = new Record().setNote("Note").setTime(Instant.ofEpochSecond(42));
-    private Account account = new Account().setName("Cash").setNote("Some note");
+    private Account account1 = new Account().setName("Cash").setNote("Some note").setAvailableToChild(true);
+    private Account account2 = new Account().setName("Card").setNote("Some note").setAvailableToChild(false);
     private final RecordPart recordPart1 = new RecordPart().setMoney(BigDecimal.valueOf(42)).setNo(1);
     private final RecordPart recordPart2 = new RecordPart().setMoney(BigDecimal.valueOf(420)).setNo(2).setNote("X");
     private final static Logger log = LoggerFactory.getLogger("TEST");
@@ -33,12 +34,14 @@ class RecordTest extends DomainTest {
         currency = manager.persist(currency);
         user1 = manager.persist(user1);
         user2 = manager.persist(user2);
-        account.setCurrency(currency);
-        account = manager.persist(account);
+        account1.setCurrency(currency);
+        account1 = manager.persist(account1);
+        account2.setCurrency(currency);
+        account2 = manager.persist(account2);
         record1.setCreator(user1);
         manager.flush();
-        recordPart1.setAccount(account);
-        recordPart2.setAccount(account);
+        recordPart1.setAccount(account1);
+        recordPart2.setAccount(account1);
     }
 
     @Test
@@ -116,38 +119,52 @@ class RecordTest extends DomainTest {
     @Test
     void findByFilter() {
         log.info("\n\nTEST");
-        var account2 = new Account().setName("Card").setCurrency(currency);
-        account2 = manager.persist(account2);
-
         record1.addPart(recordPart1).addPart(recordPart2);
         record1 = manager.persist(record1);
 
         var record2 = new Record().setNote("Note2").setTime(Instant.ofEpochSecond(500)).setCreator(user2)
                 .addPart(new RecordPart().setMoney(BigDecimal.TEN).setNo(1).setAccount(account2))
-                .addPart(new RecordPart().setMoney(BigDecimal.ZERO).setNo(2).setAccount(account));
+                .addPart(new RecordPart().setMoney(BigDecimal.ZERO).setNo(2).setAccount(account1));
 
         record2 = manager.persist(record2);
 
         manager.flush();
 
         log.info("\n\nquery 1 - счет 1 - обе, без диапазона");
-        var res = repository.findByFilter(account.getId(), null, null, Pageable.unpaged());
+        var res = repository.findByFilter(account1.getId(), null, null, false, Pageable.unpaged());
         assertThat(res).containsExactlyInAnyOrder(record1, record2);
 
         log.info("\n\nquery 2 - счет 2 - вторая");
-        res = repository.findByFilter(account2.getId(), null, null, Pageable.unpaged());
+        res = repository.findByFilter(account2.getId(), null, null, false, Pageable.unpaged());
         assertThat(res).containsExactly(record2);
 
         log.info("\n\nquery 3 - диапазон дат");
-        res = repository.findByFilter(account.getId(), Instant.ofEpochSecond(0), Instant.ofEpochSecond(100), Pageable.unpaged());
+        res = repository.findByFilter(account1.getId(), Instant.ofEpochSecond(0), Instant.ofEpochSecond(100), false, Pageable.unpaged());
         assertThat(res).containsExactlyInAnyOrder(record1);
 
         log.info("\n\nquery 4 - начало диапазона");
-        res = repository.findByFilter(account.getId(), Instant.ofEpochSecond(400), null, Pageable.unpaged());
+        res = repository.findByFilter(account1.getId(), Instant.ofEpochSecond(400), null, false, Pageable.unpaged());
         assertThat(res).containsExactlyInAnyOrder(record2);
 
         log.info("\n\nquery 5 - конец диапазона");
-        res = repository.findByFilter(account.getId(), null, Instant.ofEpochSecond(400), Pageable.unpaged());
+        res = repository.findByFilter(account1.getId(), null, Instant.ofEpochSecond(400), false, Pageable.unpaged());
+        assertThat(res).containsExactlyInAnyOrder(record1);
+    }
+
+    @Test
+    void findByFilterForChild() {
+        log.info("\n\nTEST");
+        record1.addPart(recordPart1).addPart(recordPart2);
+        record1 = manager.persist(record1);
+
+        var record2 = new Record().setNote("Note2").setTime(Instant.ofEpochSecond(500)).setCreator(user2)
+                .addPart(new RecordPart().setMoney(BigDecimal.TEN).setNo(1).setAccount(account2)) // account2 недоступен ребенку
+                .addPart(new RecordPart().setMoney(BigDecimal.ZERO).setNo(2).setAccount(account2));
+        manager.persist(record2); // соответственно вся проводка недоступна
+
+        manager.flush();
+
+        var res = repository.findByFilter(account1.getId(), null, null, true, Pageable.unpaged());
         assertThat(res).containsExactlyInAnyOrder(record1);
     }
 

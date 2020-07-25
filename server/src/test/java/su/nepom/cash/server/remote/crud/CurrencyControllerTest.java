@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import su.nepom.cash.server.domain.Currency;
@@ -88,6 +89,52 @@ class CurrencyControllerTest {
     void deleteCurrency() throws Exception {
         mvc.perform(delete(URL_ID, 42)).andExpect(status().isOk());
         verify(repository).deleteById(eq(42L));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void shouldForbidAnonymous() throws Exception {
+        mvc.perform(get(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(get(URL)).andExpect(status().isUnauthorized());
+        mvc.perform(put(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(post(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(delete(URL_ID, 42)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldPermitGetAllForChild() throws Exception {
+        when(repository.findAll()).thenReturn(List.of(currency1));
+        mvc.perform(get(URL)).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldPermitGetOneForChild() throws Exception {
+        when(repository.findById(1L)).thenReturn(Optional.of(currency1));
+        mvc.perform(get(URL_ID, 1)).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldForbidInsertForChild() throws Exception {
+        currency1.setId(0);
+        var dto = mapper.map(currency1);
+        mvc.perform(post(URL).with(json(dto))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldForbidUpdateForChild() throws Exception {
+        currency1.setId(0);
+        var dto = mapper.map(currency1);
+        mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldForbidDeleteForChild() throws Exception {
+        mvc.perform(delete(URL_ID, 42)).andExpect(status().isForbidden());
     }
 }
 

@@ -9,4 +9,7 @@
     <changeSet id="030-user" author="evgnep">
         <sqlFile path="030-user.sql" relativeToChangelogFile="true" splitStatements="false"/>
     </changeSet>
+    <changeSet id="040-account_to_child" author="evgnep">
+        <sqlFile path="040-account_to_child.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    </changeSet>
 </databaseChangeLog>

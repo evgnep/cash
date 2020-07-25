@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import su.nepom.cash.server.domain.Account;
@@ -89,5 +90,53 @@ class AccountControllerTest {
     void deleteAccount() throws Exception {
         mvc.perform(delete(URL_ID, 42)).andExpect(status().isOk());
         verify(repository).deleteById(eq(42L));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void shouldForbidAnonymous() throws Exception {
+        mvc.perform(get(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(get(URL)).andExpect(status().isUnauthorized());
+        mvc.perform(put(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(post(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(delete(URL_ID, 42)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldPermitGetOneForChildIfAvailable() throws Exception {
+        account1.setAvailableToChild(true);
+        when(repository.findById(1L)).thenReturn(Optional.of(account1));
+
+        mvc.perform(get(URL_ID, 1)).andExpect(status().isOk())
+                .andExpect(responseBody().containsObjectAsJson(mapper.map(account1)));
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldForbidGetOneForChildIfUnAvailable() throws Exception {
+        account1.setAvailableToChild(false);
+        when(repository.findById(1L)).thenReturn(Optional.of(account1));
+
+        mvc.perform(get(URL_ID, 1)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldExcludeUnAvailable() throws Exception {
+        var account2 = new Account().setId(2).setName("Cash").setAvailableToChild(true);
+        var list = List.of(account1, account2);
+        when(repository.findAll()).thenReturn(list);
+
+        mvc.perform(get(URL))
+                .andExpect(responseBody().containsObjectAsJson(List.of(mapper.map(account2))));
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldForbidChangeForChild() throws Exception {
+        mvc.perform(put(URL_ID, 42)).andExpect(status().isForbidden());
+        mvc.perform(post(URL_ID, 42)).andExpect(status().isForbidden());
+        mvc.perform(delete(URL_ID, 42)).andExpect(status().isForbidden());
     }
 }

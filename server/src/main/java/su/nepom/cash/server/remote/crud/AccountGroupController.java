@@ -10,6 +10,9 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static su.nepom.cash.server.remote.crud.SecurityUtils.ifChild;
+import static su.nepom.cash.server.remote.crud.SecurityUtils.isChild;
+
 @RestController
 @RequestMapping("/api/account-group")
 @RequiredArgsConstructor
@@ -19,12 +22,17 @@ public class AccountGroupController {
 
     @GetMapping
     List<AccountGroupDto> getAll() {
-        return repository.findAll().stream().map(mapper::map).collect(Collectors.toList());
+        var isChild = isChild();
+        return repository.findAll().stream()
+                .filter(group -> !isChild || group.removeAccountsUnavailableToChild())
+                .map(mapper::map).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     AccountGroupDto getOne(@PathVariable long id) {
-        return repository.findById(id).map(mapper::map).orElseThrow(EntityNotFoundException::new);
+        var group = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+        ifChild(name -> group.removeAccountsUnavailableToChild());
+        return mapper.map(group);
     }
 
     @PostMapping
