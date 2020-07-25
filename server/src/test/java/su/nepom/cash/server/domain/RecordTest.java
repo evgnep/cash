@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import su.nepom.cash.server.repository.AccountRepository;
 import su.nepom.cash.server.repository.RecordRepository;
 
 import java.math.BigDecimal;
@@ -21,13 +22,15 @@ class RecordTest extends DomainTest {
     private User user2 = new User().setName("B");
     private Record record1 = new Record().setNote("Note").setTime(Instant.ofEpochSecond(42));
     private Account account1 = new Account().setName("Cash").setNote("Some note").setAvailableToChild(true);
-    private Account account2 = new Account().setName("Card").setNote("Some note").setAvailableToChild(false);
+    @Autowired
+    AccountRepository accountRepository;
     private final RecordPart recordPart1 = new RecordPart().setMoney(BigDecimal.valueOf(42)).setNo(1);
     private final RecordPart recordPart2 = new RecordPart().setMoney(BigDecimal.valueOf(420)).setNo(2).setNote("X");
     private final static Logger log = LoggerFactory.getLogger("TEST");
 
     @Autowired
     RecordRepository repository;
+    private Account account2 = new Account().setName("Card").setNote("Other note").setAvailableToChild(false);
 
     @BeforeEach
     void beforeEach() {
@@ -185,5 +188,60 @@ class RecordTest extends DomainTest {
         log.warn("\n\n2");
         record1 = repository.findById(record1.getId()).orElseThrow();
         assertThat(record1.getParts()).containsExactly(recordPart1);
+    }
+
+    @Test
+    void Should_UpdateAccTotal_When_InsertNewRecord() {
+        log.warn("\n\nCreate");
+        recordPart2.setAccount(account2);
+        record1.addPart(recordPart1).addPart(recordPart2);
+        manager.persistAndFlush(record1);
+
+        manager.clear();
+        account1 = accountRepository.findById(account1.getId()).orElseThrow();
+        assertThat(account1.getTotal()).isEqualTo("42.00");
+
+        account2 = accountRepository.findById(account2.getId()).orElseThrow();
+        assertThat(account2.getTotal()).isEqualTo("420.00");
+    }
+
+    @Test
+    void Should_UpdateAccTotal_When_UpdateRecordPartMoney() {
+        log.warn("\n\nCreate");
+        recordPart2.setAccount(account2);
+        record1.addPart(recordPart1).addPart(recordPart2);
+        manager.persistAndFlush(record1);
+
+        log.warn("\n\nUpdate");
+        recordPart1.setMoney(BigDecimal.valueOf(500));
+        recordPart2.setMoney(BigDecimal.valueOf(-600));
+        manager.persistAndFlush(record1);
+
+        manager.clear();
+        log.warn("\n\nSelect");
+        account1 = accountRepository.findById(account1.getId()).orElseThrow();
+        assertThat(account1.getTotal()).isEqualTo("500.00");
+
+        account2 = accountRepository.findById(account2.getId()).orElseThrow();
+        assertThat(account2.getTotal()).isEqualTo("-600.00");
+    }
+
+    @Test
+    void Should_UpdateAccTotal_When_UpdateRecordPartAccount() {
+        log.warn("\n\nCreate");
+        record1.addPart(recordPart1).addPart(recordPart2);
+        manager.persistAndFlush(record1);
+
+        log.warn("\n\nUpdate");
+        recordPart2.setAccount(account2);
+        manager.persistAndFlush(record1);
+
+        manager.clear();
+        log.warn("\n\nSelect");
+        account1 = accountRepository.findById(account1.getId()).orElseThrow();
+        assertThat(account1.getTotal()).isEqualTo("42.00");
+
+        account2 = accountRepository.findById(account2.getId()).orElseThrow();
+        assertThat(account2.getTotal()).isEqualTo("420.00");
     }
 }
