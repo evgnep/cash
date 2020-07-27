@@ -38,7 +38,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
-        web.ignoring().antMatchers("/swagger-ui/**", "/swagger/**");
+        web.ignoring().antMatchers("/swagger-ui/**", "/swagger/**", "/v3/api-docs/**");
     }
 
     @Override
@@ -62,7 +62,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         //- проводки
                         .antMatchers("/api/record/**").hasAnyRole(CHILD, PARENT) // доп проверки на уровне методов
                         //--
-                        .antMatchers("/v3/api-docs/**").permitAll()
                         .anyRequest().denyAll()
                 );
     }
