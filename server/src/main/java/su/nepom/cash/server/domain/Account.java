@@ -3,11 +3,9 @@ package su.nepom.cash.server.domain;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import su.nepom.util.BigDecimals;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Objects;
 
 /**
  * Счет.
@@ -23,6 +21,7 @@ public class Account {
     private String name;
     private boolean closed; // закрыт (должен иметь нулевой остаток)
     private boolean isMoney; // true - типа "деньги" (иначе - типа "бюджет")
+    private boolean availableToChild; // true - доступен ребенку (видит операции, может делать операции, видит остаток)
     private String note;
     @Column(updatable = false)
     @EqualsAndHashCode.Exclude

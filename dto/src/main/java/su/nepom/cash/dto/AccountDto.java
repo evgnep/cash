@@ -1,7 +1,6 @@
 package su.nepom.cash.dto;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
@@ -18,6 +17,7 @@ public class AccountDto {
     private String name;
     private boolean closed; // закрыт (должен иметь нулевой остаток)
     private boolean money; // true - типа "деньги" (иначе - типа "бюджет")
+    private boolean availableToChild; // true - доступен ребенку (видит операции, может делать операции, видит остаток)
     private String note;
     private BigDecimal total = BigDecimal.ZERO; // текущий остаток по кошельку
     private long currency;

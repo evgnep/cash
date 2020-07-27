@@ -6,9 +6,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,5 +35,10 @@ public class AccountGroup {
     public AccountGroup removeAccount(long accountId) {
         accounts.removeIf(a -> a.getId() == accountId);
         return this;
+    }
+
+    public boolean removeAccountsUnavailableToChild() {
+        accounts.removeIf(account -> !account.isAvailableToChild());
+        return !accounts.isEmpty();
     }
 }

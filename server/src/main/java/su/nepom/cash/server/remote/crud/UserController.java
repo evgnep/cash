@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static su.nepom.cash.server.remote.crud.SecurityUtils.ifChild;
+
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -49,6 +51,11 @@ public class UserController {
     @Transactional
     UserDto update(@PathVariable long id, @RequestBody UserDto userDto) {
         var prevUser = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+
+        ifChild(name -> name.equals(prevUser.getName()) // нельзя менять другого
+                && userDto.isChild() // стать родителем
+                && Objects.equals(userDto.getName(), prevUser.getName()) // менять имя
+        );
 
         var user = mapper.map(userDto);
         user.setId(id);

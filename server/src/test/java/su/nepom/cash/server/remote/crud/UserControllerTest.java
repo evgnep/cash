@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import su.nepom.cash.server.domain.User;
@@ -18,8 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -144,5 +144,87 @@ class UserControllerTest {
     void deleteUser() throws Exception {
         mvc.perform(delete(URL_ID, 42)).andExpect(status().isOk());
         verify(repository).deleteById(eq(42L));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void shouldForbidAnonymous() throws Exception {
+        mvc.perform(get(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(get(URL)).andExpect(status().isUnauthorized());
+        mvc.perform(put(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(post(URL_ID, 42)).andExpect(status().isUnauthorized());
+        mvc.perform(delete(URL_ID, 42)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldPermitGetOneForChild() throws Exception {
+        user1.setPassword("123");
+        when(repository.findById(1L)).thenReturn(Optional.of(user1));
+
+        mvc.perform(get(URL_ID, 1)).andExpect(status().isOk())
+                .andExpect(responseBody().containsObjectAsJson(mapper.map(user1)));
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldPermitGetAllForChild() throws Exception {
+        var user2 = new User().setId(2).setName("tseT");
+        var list = List.of(user1, user2);
+        when(repository.findAll()).thenReturn(list);
+
+        mvc.perform(get(URL)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.[0].name").value("Test"))
+                .andExpect(jsonPath("$.[1].id").value("2"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD")
+    void shouldForbidInsertAndDeleteForChild() throws Exception {
+        mvc.perform(post(URL_ID, 42)).andExpect(status().isForbidden());
+        mvc.perform(delete(URL_ID, 42)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD", username = "Ivan")
+    void shouldPermitChangeSelfForChild() throws Exception {
+        var user = new User().setName("Ivan").setChild(true).setPassword("123");
+        var dto = mapper.map(user);
+
+        when(repository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(repository.save(any())).thenAnswer(AdditionalAnswers.returnsFirstArg());
+
+        mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(responseBody().containsObjectAsJson(dto.setId(42)));
+
+        verify(repository).save(eq(user.setPassword("123").setId(42)));
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD", username = "Petr")
+    void shouldForbidChangeOtherForChild() throws Exception {
+        var user = new User().setName("Ivan").setPassword("123");
+        var dto = mapper.map(user);
+
+        when(repository.findById(anyLong())).thenReturn(Optional.of(user));
+
+        mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(status().isForbidden());
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @WithMockUser(roles = "CHILD", username = "Petr")
+    void shouldForbidChangeChildOrNameForChild() throws Exception {
+        var user = new User().setName("Petr").setChild(true).setPassword("123");
+        var dto = mapper.map(user).setChild(false);
+
+        when(repository.findById(anyLong())).thenReturn(Optional.of(user));
+
+        mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(status().isForbidden());
+
+        dto.setChild(true).setName("Qwe");
+        mvc.perform(put(URL_ID, 42).with(json(dto))).andExpect(status().isForbidden());
+
+        verify(repository, never()).save(any());
     }
 }

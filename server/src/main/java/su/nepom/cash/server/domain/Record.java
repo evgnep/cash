@@ -5,12 +5,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.core.annotation.Order;
 
 import javax.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,5 +42,14 @@ public class Record {
         parts.add(part);
         part.setRecord(this);
         return this;
+    }
+
+    public boolean removePartsUnavailableToChild() {
+        parts.removeIf(part -> !part.getAccount().isAvailableToChild());
+        return !parts.isEmpty();
+    }
+
+    public boolean isAvailableToChild() {
+        return parts.stream().allMatch(p -> p.getAccount().isAvailableToChild());
     }
 }

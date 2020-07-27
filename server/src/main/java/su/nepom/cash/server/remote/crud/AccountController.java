@@ -10,6 +10,9 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static su.nepom.cash.server.remote.crud.SecurityUtils.ifChild;
+import static su.nepom.cash.server.remote.crud.SecurityUtils.isChild;
+
 @RestController
 @RequestMapping("/api/account")
 @RequiredArgsConstructor
@@ -19,12 +22,18 @@ public class AccountController {
 
     @GetMapping
     List<AccountDto> getAll() {
-        return repository.findAll().stream().map(mapper::map).collect(Collectors.toList());
+        var child = isChild();
+        return repository.findAll().stream()
+                .filter(account -> !child || account.isAvailableToChild())
+                .map(mapper::map)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     AccountDto getOne(@PathVariable long id) {
-        return repository.findById(id).map(mapper::map).orElseThrow(EntityNotFoundException::new);
+        var account = repository.findById(id).map(mapper::map).orElseThrow(EntityNotFoundException::new);
+        ifChild(n -> account.isAvailableToChild());
+        return account;
     }
 
     @PostMapping
