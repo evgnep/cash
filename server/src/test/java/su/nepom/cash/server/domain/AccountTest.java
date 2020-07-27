@@ -5,10 +5,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import su.nepom.cash.server.repository.AccountRepository;
-import su.nepom.cash.server.repository.CurrencyRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("SqlWithoutWhere")
 @DisplayName("CRUD для Account")
 class AccountTest extends DomainTest {
     private Currency currency1 = new Currency().setName("Rubles").setCode("Rb");
@@ -55,5 +55,46 @@ class AccountTest extends DomainTest {
         account = manager.persistAndFlush(account);
         manager.remove(account);
         manager.flush();
+    }
+
+    @Test
+    void shouldPermitCloseWhenTotalIs0() {
+        account = manager.persistAndFlush(account);
+
+        account.setClosed(true);
+        manager.flush();
+
+        manager.clear();
+
+        var readed = manager.find(Account.class, account.getId());
+        assertThat(readed.isClosed()).isTrue();
+    }
+
+    @Test
+    void shouldProhibitCloseWhenTotalIsNot0() {
+        account = manager.persistAndFlush(account);
+
+        manager.getEntityManager().createNativeQuery("update account set total = 42").executeUpdate();
+
+        account.setClosed(true);
+        manager.flush();
+
+        manager.clear();
+
+        var readed = manager.find(Account.class, account.getId());
+        assertThat(readed.isClosed()).isFalse();
+    }
+
+    @Test
+    void shouldOpenWhenTotalBecameNot0() {
+        account.setClosed(true);
+        account = manager.persistAndFlush(account);
+
+        manager.getEntityManager().createNativeQuery("update account set total = 42").executeUpdate();
+
+        manager.clear();
+
+        var readed = manager.find(Account.class, account.getId());
+        assertThat(readed.isClosed()).isFalse();
     }
 }
