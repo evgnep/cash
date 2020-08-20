@@ -12,4 +12,13 @@
     <changeSet id="040-account_to_child" author="evgnep">
         <sqlFile path="040-account_to_child.sql" relativeToChangelogFile="true" splitStatements="false"/>
     </changeSet>
+    <changeSet id="050-account_total_trigger" author="evgnep">
+        <sqlFile path="050-account_total_trigger.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    </changeSet>
+    <changeSet id="060-accout_close_control" author="evgnep">
+        <sqlFile path="060-accout_close_control.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    </changeSet>
+    <changeSet id="070-record_invariant" author="evgnep">
+        <sqlFile path="070-record_invariant.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    </changeSet>
 </databaseChangeLog>
