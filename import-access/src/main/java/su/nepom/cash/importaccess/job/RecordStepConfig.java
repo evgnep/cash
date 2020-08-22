@@ -102,13 +102,15 @@ public class RecordStepConfig {
             }
         }
 
+        // Обмен валюты
         private void insertPartsExchange(Record record, UUID uid) {
             insertPart(uid, 1, record.getMoney(), record.getAccountFromId(), true);
             insertPart(uid, 2, record.getMoney(), record.getAccountFromId(), false);
-            insertPart(uid, 3, record.getTransfer(), record.getAccountToId(), true);
-            insertPart(uid, 4, record.getTransfer(), record.getAccountToId(), false);
+            insertPart(uid, 3, record.getTransfer().negate(), record.getAccountToId(), true);
+            insertPart(uid, 4, record.getTransfer().negate(), record.getAccountToId(), false);
         }
 
+        // Перевод в одной валюте
         private void insertPartsTransfer(Record record, UUID uid) {
             int no = 1;
             if (!BigDecimals.equalsValue(record.getMoney(), BigDecimal.ZERO)) {
@@ -122,6 +124,7 @@ public class RecordStepConfig {
             }
         }
 
+        // Простая проводка
         private void insertPartsSimple(Record record, UUID uid) {
             Assert.isTrue(record.getAccountToId() == null, "AccountTo is not null: " + record.getId());
             insertPart(uid, 1, record.getMoney(), record.getAccountFromId(), true);
