@@ -1,6 +1,7 @@
 package su.nepom.cash.server.remote.crud;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import su.nepom.cash.dto.UserDto;
@@ -31,6 +32,16 @@ public class UserController {
     @GetMapping("/{id}")
     UserDto getOne(@PathVariable long id) {
         return repository.findById(id).map(mapper::map).orElseThrow(EntityNotFoundException::new);
+    }
+
+    @GetMapping("/current")
+    UserDto current() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var user = auth.getPrincipal();
+        if (user instanceof User)
+            return mapper.map((User) user);
+        else
+            return new UserDto().setName(auth.getName()).setChild(false).setId(-1);
     }
 
     private void updatePassword(User user) {

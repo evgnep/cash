@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools" android:id="@+id/main_graph"
+            app:startDestination="@id/accountList">
+
+    <fragment android:id="@+id/currencyList" android:name="su.nepom.cash.phone.ui.CurrencyList"
+              android:label="fragment_currency_list">
+        <action android:id="@+id/action_currencyList_to_currencyDialog" app:destination="@id/currencyDialog"/>
+    </fragment>
+    <fragment android:id="@+id/currencyDialog" android:name="su.nepom.cash.phone.ui.CurrencyDialog"
+              android:label="fragment_currency_dialog"/>
+    <action android:id="@+id/action_global_currencyList" app:destination="@id/currencyList"/>
+    <fragment android:id="@+id/accountList" android:name="su.nepom.cash.phone.ui.AccountList"
+              android:label="fragment_account_list"
+    >
+        <action android:id="@+id/action_accountList_to_accountDialog" app:destination="@id/accountDialog"/>
+    </fragment>
+    <action android:id="@+id/action_global_accountList" app:destination="@id/accountList"/>
+    <fragment android:id="@+id/accountDialog" android:name="su.nepom.cash.phone.ui.AccountDialog"
+              android:label="fragment_cash_dialog"/>
+    <fragment android:id="@+id/recordList" android:name="su.nepom.cash.phone.ui.RecordList"
+              android:label="fragment_record_list" tools:layout="@layout/fragment_record_list">
+        <action android:id="@+id/action_recordList_to_recordDialog" app:destination="@id/recordDialog"/>
+    </fragment>
+    <action android:id="@+id/action_global_recordList" app:destination="@id/recordList"/>
+    <fragment android:id="@+id/recordDialog" android:name="su.nepom.cash.phone.ui.RecordDialog"
+              android:label="fragment_record_dialog" tools:layout="@layout/fragment_record_dialog"/>
+    <fragment android:id="@+id/accountGroupList" android:name="su.nepom.cash.phone.ui.AccountGroupList"
+              android:label="AccountGroupList"/>
+    <action android:id="@+id/action_global_accountGroupList" app:destination="@id/accountGroupList"/>
+</navigation>

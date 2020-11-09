@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Деньги</string>
+    <string name="prompt_password">Пароль</string>
+    <string name="prompt_username">Пользователь</string>
+    <string name="action_sign_in">Войти</string>
+    <string name="currencies">Валюты</string>
+    <string name="msg_question_delete">Точно удалить объект?</string>
+    <string name="account_groups">Группы кошельков</string>
+    <string name="name">Название</string>
+    <string name="delete">Удалить</string>
+    <string name="code">Код</string>
+    <string name="accounts">Кошельки</string>
+    <string name="filter">Фильтр</string>
+    <string name="note">Прим.</string>
+    <string name="closed">Закрыт</string>
+    <string name="money">Деньги</string>
+    <string name="availableToChild">Доступен детям</string>
+    <string name="currency">Валюта</string>
+</resources>

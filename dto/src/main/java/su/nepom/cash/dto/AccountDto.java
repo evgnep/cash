@@ -1,5 +1,7 @@
 package su.nepom.cash.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -12,6 +14,8 @@ import java.math.BigDecimal;
 @Data
 @Accessors(chain = true)
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class AccountDto {
     private long id;
     private String name;
@@ -24,5 +28,9 @@ public class AccountDto {
 
     public AccountDto(long id) {
         this.id = id;
+    }
+
+    public AccountDto createCopy() {
+        return toBuilder().build();
     }
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="@string/accounts" android:id="@id/accountList"/>
+    <item android:title="@string/account_groups" android:id="@id/accountGroupList"/>
+    <item android:title="@string/currencies" android:id="@id/currencyList"/>
+</menu>

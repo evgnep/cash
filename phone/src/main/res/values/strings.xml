@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Money</string>
+    <!-- Strings related to login -->
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- Strings used for fragments for navigation -->
+
+    <string name="prompt_username">Username</string>
+    <string name="currencies">Currencies</string>
+    <string name="account_groups">Account groups</string>
+    <string name="id" translatable="false">ID</string>
+    <string name="name">Name</string>
+    <string name="delete">Delete</string>
+    <string name="code">Code</string>
+    <string name="msg_question_delete">Are you really want to delete object?</string>
+    <string name="accounts">Accounts</string>
+    <string name="filter">Filter</string>
+    <string name="note">Note</string>
+    <string name="closed">Closed</string>
+    <string name="money">Money</string>
+    <string name="availableToChild">Available to child</string>
+    <string name="currency">Currency</string>
+</resources>
