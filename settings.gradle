@@ -2,5 +2,6 @@ rootProject.name = 'cash'
 
 include ('server')
 include ('util')
-include 'dto'
+include ('dto')
+include ('import-access')
 
