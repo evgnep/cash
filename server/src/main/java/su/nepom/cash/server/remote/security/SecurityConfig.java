@@ -62,6 +62,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         //- проводки
                         .antMatchers("/api/record/**").hasAnyRole(CHILD, PARENT) // доп проверки на уровне методов
                         //--
+                        .antMatchers("/actuator/**").hasRole(PARENT)
                         .anyRequest().denyAll()
                 );
     }
