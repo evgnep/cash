@@ -61,6 +61,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .antMatchers("/api/account/**").hasRole(PARENT)
                         //- проводки
                         .antMatchers("/api/record/**").hasAnyRole(CHILD, PARENT) // доп проверки на уровне методов
+                        //- работа с чеками
+                        .antMatchers("/api/cheque/**").permitAll()
                         //--
                         .anyRequest().denyAll()
                 );

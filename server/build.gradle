@@ -49,6 +49,9 @@ dependencies {
     // для logback.xml (только для тестов)
     testImplementation(group: 'org.codehaus.janino', name: 'janino', version: '3.1.2')
 
+    //-- resilience4j
+    implementation 'io.github.resilience4j:resilience4j-all:1.6.1'
+
     //-- модули
     implementation project(":util")
     implementation project(":dto")
